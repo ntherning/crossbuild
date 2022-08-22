@@ -1,4 +1,4 @@
-FROM buildpack-deps:stretch-curl
+FROM buildpack-deps:bullseye-curl
 MAINTAINER Manfred Touron <m@42.am> (https://github.com/moul)
 
 # Install deps
@@ -61,11 +61,11 @@ RUN apt-get install -y mingw-w64 \
 
 #Build arguments
 ARG osxcross_repo="tpoechtrager/osxcross"
-ARG osxcross_revision="542acc2ef6c21aeb3f109c03748b1015a71fed63"
-ARG darwin_sdk_version="10.10"
-ARG darwin_osx_version_min="10.6"
-ARG darwin_version="14"
-ARG darwin_sdk_url="https://www.dropbox.com/s/yfbesd249w10lpc/MacOSX${darwin_sdk_version}.sdk.tar.xz"
+ARG osxcross_revision="17bb5e2d0a46533c1dd525cf4e9a80d88bd9f00e"
+ARG darwin_sdk_version="11.3"
+ARG darwin_osx_version_min="10.9"
+ARG darwin_version="20.4"
+ARG darwin_sdk_url="https://drive.google.com/uc?export=download&id=1jIUPgFwlco6SR20CGTUkHzNQuyP9AtOY"
 
 # ENV available in docker image
 ENV OSXCROSS_REPO="${osxcross_repo}"                   \
@@ -95,9 +95,9 @@ RUN mkdir -p "/tmp/osxcross"                                                    
 
 # Create symlinks for triples and set default CROSS_TRIPLE
 ENV LINUX_TRIPLES=arm-linux-gnueabi,arm-linux-gnueabihf,aarch64-linux-gnu,mipsel-linux-gnu,powerpc64le-linux-gnu                  \
-    DARWIN_TRIPLES=x86_64h-apple-darwin${DARWIN_VERSION},x86_64-apple-darwin${DARWIN_VERSION},i386-apple-darwin${DARWIN_VERSION}  \
+    DARWIN_TRIPLES=x86_64h-apple-darwin${DARWIN_VERSION},x86_64-apple-darwin${DARWIN_VERSION},aarch64-apple-darwin${DARWIN_VERSION},i386-apple-darwin${DARWIN_VERSION}  \
     WINDOWS_TRIPLES=i686-w64-mingw32,x86_64-w64-mingw32                                                                           \
-    CROSS_TRIPLE=x86_64-linux-gnu
+    CROSS_TRIPLE=aarch64-apple-darwin
 COPY ./assets/osxcross-wrapper /usr/bin/osxcross-wrapper
 RUN mkdir -p /usr/x86_64-linux-gnu;                                                               \
     for triple in $(echo ${LINUX_TRIPLES} | tr "," " "); do                                       \

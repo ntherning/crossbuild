@@ -19,12 +19,12 @@ jobs:
       - name: Build
         uses: docker/build-push-action@v3
         with:
-          load: true
-          tags: ${{ github.repository }}
-      - name: Test
-        run: ./test.sh -d "${{ github.repository }}"
-      - name: Push
-        uses: docker/build-push-action@v3
-        with:
           push: true
           tags: ${{ github.repository }}
+#      - name: Test
+#        run: ./test.sh -d "${{ github.repository }}"
+#      - name: Push
+#        uses: docker/build-push-action@v3
+#        with:
+#          push: true
+#          tags: ${{ github.repository }}

@@ -34,6 +34,15 @@ case "${CROSS_TRIPLE}" in
 	echo "${CROSS_TRIPLE} not yet implemented." && exit 1 ;;
 esac
 
+case $(uname -m) in
+    x86_64)
+	HOST_TRIPLE="x86_64-linux-gnu" ;;
+    aarch64)
+	HOST_TRIPLE="aarch64-linux-gnu" ;;
+    *)
+	echo "Host architecture $(uname -a) is not supported." && exit 1 ;;
+esac
+
 # store original PATH and LD_LIBRARY_PATH
 if [ -z ${PATH_ORIGIN+x} ]; then export PATH_ORIGIN=${PATH}; fi
 if [ -z ${LD_LIBRARY_PATH_ORIGIN+x} ]; then export LD_LIBRARY_PATH_ORIGIN=${LD_LIBRARY_PATH}; fi
@@ -42,7 +51,7 @@ if [ -z ${LD_LIBRARY_PATH_ORIGIN+x} ]; then export LD_LIBRARY_PATH_ORIGIN=${LD_L
 if [ -n "${CROSS_TRIPLE}" ]; then
     export CROSS_ROOT="/usr/${CROSS_TRIPLE}"
     export PATH="${CROSS_ROOT}/bin:${PATH_ORIGIN}"
-    export LD_LIBRARY_PATH="/usr/x86_64-linux-gnu/${CROSS_TRIPLE}/lib:${LD_LIBRARY_PATH_ORIGIN}"
+    export LD_LIBRARY_PATH="/usr/${HOST_TRIPLE}/${CROSS_TRIPLE}/lib:${LD_LIBRARY_PATH_ORIGIN}"
 fi
 
 # try to exec direct binary instead on relying on the $PATH

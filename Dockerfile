@@ -2,7 +2,8 @@ FROM buildpack-deps:bullseye-curl
 MAINTAINER Manfred Touron <m@42.am> (https://github.com/moul)
 
 # Install deps
-RUN set -x; echo "Starting image build for Debian Stretch" \
+RUN set -x \
+ && dpkg --add-architecture amd64                      \
  && dpkg --add-architecture arm64                      \
  && dpkg --add-architecture armel                      \
  && dpkg --add-architecture armhf                      \
@@ -23,6 +24,7 @@ RUN set -x; echo "Starting image build for Debian Stretch" \
         build-essential                                \
         ccache                                         \
         clang                                          \
+        crossbuild-essential-amd64                     \
         crossbuild-essential-arm64                     \
         crossbuild-essential-armel                     \
         crossbuild-essential-armhf                     \
@@ -55,7 +57,6 @@ RUN set -x; echo "Starting image build for Debian Stretch" \
 # Install Windows cross-tools
 RUN apt-get install -y mingw-w64 \
  && apt-get clean
-
 
 # Install OSx cross-tools
 
@@ -92,15 +93,14 @@ RUN mkdir -p "/tmp/osxcross"                                                    
  && rm -rf /tmp/osxcross                                                                                       \
  && rm -rf "/usr/osxcross/SDK/MacOSX${DARWIN_SDK_VERSION}.sdk/usr/share/man"
 
-
 # Create symlinks for triples and set default CROSS_TRIPLE
-ENV LINUX_TRIPLES=arm-linux-gnueabi,arm-linux-gnueabihf,aarch64-linux-gnu,mipsel-linux-gnu,powerpc64le-linux-gnu                  \
+ENV LINUX_TRIPLES=arm-linux-gnueabi,arm-linux-gnueabihf,aarch64-linux-gnu,mipsel-linux-gnu,powerpc64le-linux-gnu,x86_64-linux-gnu \
     DARWIN_TRIPLES=x86_64h-apple-darwin${DARWIN_VERSION},x86_64-apple-darwin${DARWIN_VERSION},aarch64-apple-darwin${DARWIN_VERSION},i386-apple-darwin${DARWIN_VERSION}  \
     WINDOWS_TRIPLES=i686-w64-mingw32,x86_64-w64-mingw32                                                                           \
     CROSS_TRIPLE=aarch64-apple-darwin
 COPY ./assets/osxcross-wrapper /usr/bin/osxcross-wrapper
-RUN mkdir -p /usr/x86_64-linux-gnu;                                                               \
-    for triple in $(echo ${LINUX_TRIPLES} | tr "," " "); do                                       \
+RUN export HOST_TRIPLE=$(/usr/bin/gcc -dumpmachine); mkdir -p /usr/${HOST_TRIPLE};                         \
+    for triple in $(echo ${LINUX_TRIPLES} | tr "," " " | sed "s/$HOST_TRIPLE//"); do              \
       for bin in /usr/bin/$triple-*; do                                                           \
         if [ ! -f /usr/$triple/bin/$(basename $bin | sed "s/$triple-//") ]; then                  \
           ln -s $bin /usr/$triple/bin/$(basename $bin | sed "s/$triple-//");                      \
@@ -119,7 +119,7 @@ RUN mkdir -p /usr/x86_64-linux-gnu;                                             
       done &&                                                                                     \
       rm -f /usr/$triple/bin/clang*;                                                              \
       ln -s cc /usr/$triple/bin/gcc;                                                              \
-      ln -s /usr/osxcross/SDK/MacOSX${DARWIN_SDK_VERSION}.sdk/usr /usr/x86_64-linux-gnu/$triple;  \
+      ln -s /usr/osxcross/SDK/MacOSX${DARWIN_SDK_VERSION}.sdk/usr /usr/${HOST_TRIPLE}/$triple;    \
     done;                                                                                         \
     for triple in $(echo ${WINDOWS_TRIPLES} | tr "," " "); do                                     \
       mkdir -p /usr/$triple/bin;                                                                  \
@@ -129,7 +129,7 @@ RUN mkdir -p /usr/x86_64-linux-gnu;                                             
         fi;                                                                                       \
       done;                                                                                       \
       ln -s gcc /usr/$triple/bin/cc;                                                              \
-      ln -s /usr/$triple /usr/x86_64-linux-gnu/$triple;                                           \
+      ln -s /usr/$triple /usr/${HOST_TRIPLE}/$triple;                                             \
     done
 # we need to use default clang binary to avoid a bug in osxcross that recursively call himself
 # with more and more parameters

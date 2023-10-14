@@ -78,12 +78,13 @@ ENV OSXCROSS_REPO="${osxcross_repo}"                   \
 
 RUN mkdir -p "/tmp/osxcross"                                                                                   \
  && cd "/tmp/osxcross"                                                                                         \
- && curl -sLo osxcross.tar.gz "https://codeload.github.com/${OSXCROSS_REPO}/tar.gz/${OSXCROSS_REVISION}"  \
+ && curl -sLo osxcross.tar.gz "https://codeload.github.com/${OSXCROSS_REPO}/tar.gz/${OSXCROSS_REVISION}"       \
  && tar --strip=1 -xzf osxcross.tar.gz                                                                         \
  && rm -f osxcross.tar.gz                                                                                      \
  && curl -sLo tarballs/MacOSX${DARWIN_SDK_VERSION}.sdk.tar.xz                                                  \
-             "${DARWIN_SDK_URL}"                \
- && yes "" | SDK_VERSION="${DARWIN_SDK_VERSION}" OSX_VERSION_MIN="${DARWIN_OSX_VERSION_MIN}" ./build.sh                               \
+             "${DARWIN_SDK_URL}"                                                                               \
+ && yes "" | SDK_VERSION="${DARWIN_SDK_VERSION}" OSX_VERSION_MIN="${DARWIN_OSX_VERSION_MIN}" ./build.sh        \
+ && ENABLE_COMPILER_RT_INSTALL=y ./build_compiler_rt.sh                                                        \
  && mv target /usr/osxcross                                                                                    \
  && mv tools /usr/osxcross/                                                                                    \
  && ln -sf ../tools/osxcross-macports /usr/osxcross/bin/omp                                                    \
